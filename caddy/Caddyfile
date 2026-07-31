@@ -1,0 +1,21 @@
+# 反向代理 + 自动 HTTPS。
+# 本地：SITE_ADDRESS=:80 → 仅 HTTP。
+# 生产：SITE_ADDRESS=course.example.com → Caddy 自动签发 Let's Encrypt 证书。
+
+{$SITE_ADDRESS} {
+	# 后端 REST API
+	handle /api/* {
+		reverse_proxy {$API_HOST}
+	}
+
+	# SSE 实时推送：禁用缓冲，保持长连接
+	handle /events* {
+		flush_interval -1
+		reverse_proxy {$API_HOST}
+	}
+
+	# 其余全部交给 Next.js 前端
+	handle {
+		reverse_proxy {$WEB_HOST}
+	}
+}
