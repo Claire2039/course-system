@@ -1,34 +1,44 @@
-"""管理员路由：批量导入用户（CSV）。
+"""管理员路由：批量导入用户 + 课程/教学班/学期 CRUD + 教师列表。
 
-原子导入：先全部解析校验 + 查重，任一错误则 422 且不写入任何数据；否则单事务提交。
-初始随机口令仅此一次随响应返回，供管理员分发。
+全部需要 ADMIN（路由器级依赖）。删除被引用的对象返回 409（不级联）。
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from app.api.deps import require_role
-from app.db.session import get_session
-from app.models import User
-from app.models.constants import UserRole
+from app.api.deps import get_session, require_role
+from app.models import Course, Enrollment, Section, Semester, Teacher, User
+from app.models.constants import EnrollmentStatus, UserRole
 from app.schemas.admin import (
+    AdminSectionOut,
+    AdminSemesterOut,
+    AdminTeacherOut,
+    CourseCreate,
+    CourseUpdate,
+    ImportUsersErrorResponse,
     ImportedUserRow,
     ImportUsersResponse,
-    ImportUsersErrorResponse,
+    SectionCreate,
+    SectionUpdate,
+    SemesterCreate,
+    SemesterUpdate,
 )
+from app.schemas.catalog import CourseOut
 from app.services import user_import
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_role(UserRole.ADMIN))])
 
 
+# ---------- 批量导入用户 ----------
 @router.post("/import-users", response_model=ImportUsersResponse)
 async def import_users(
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_role(UserRole.ADMIN)),
 ) -> ImportUsersResponse:
     raw = (await file.read()).decode("utf-8", errors="replace")
     try:
@@ -96,3 +106,175 @@ async def import_users(
         for u, v in zip(users, validated)
     ]
     return ImportUsersResponse(imported=len(users), users=rows_out)
+
+
+# ---------- 教师（供分班下拉） ----------
+@router.get("/teachers", response_model=list[AdminTeacherOut])
+async def list_teachers(session: AsyncSession = Depends(get_session)) -> list[AdminTeacherOut]:
+    rows = (
+        await session.execute(
+            select(Teacher)
+            .options(selectinload(Teacher.user))
+            .order_by(Teacher.teacher_no)
+        )
+    ).scalars().all()
+    return [
+        AdminTeacherOut(
+            id=t.user_id, name=t.user.name, teacher_no=t.teacher_no, department=t.department
+        )
+        for t in rows
+    ]
+
+
+# ---------- 课程 CRUD ----------
+@router.post("/courses", response_model=CourseOut)
+async def create_course(
+    body: CourseCreate, session: AsyncSession = Depends(get_session)
+) -> CourseOut:
+    c = Course(**body.model_dump())
+    session.add(c)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(status_code=409, detail={"code": "conflict", "message": "课程代码已存在。"})
+    await session.refresh(c)
+    return CourseOut.model_validate(c)
+
+
+@router.patch("/courses/{course_id}", response_model=CourseOut)
+async def update_course(
+    course_id: int, body: CourseUpdate, session: AsyncSession = Depends(get_session)
+) -> CourseOut:
+    c = await session.get(Course, course_id)
+    if c is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found"})
+    for k, v in body.model_dump(exclude_unset=True).items():
+        setattr(c, k, v)
+    await session.commit()
+    await session.refresh(c)
+    return CourseOut.model_validate(c)
+
+
+@router.delete("/courses/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_course(course_id: int, session: AsyncSession = Depends(get_session)) -> None:
+    ref = (
+        await session.execute(
+            select(func.count()).select_from(Section).where(Section.course_id == course_id)
+        )
+    ).scalar_one()
+    if ref > 0:
+        raise HTTPException(
+            status_code=409, detail={"code": "in_use", "message": "该课程仍有教学班，无法删除。"}
+        )
+    c = await session.get(Course, course_id)
+    if c is not None:
+        await session.delete(c)
+        await session.commit()
+
+
+# ---------- 教学班 CRUD ----------
+@router.post("/sections", response_model=AdminSectionOut)
+async def create_section(
+    body: SectionCreate, session: AsyncSession = Depends(get_session)
+) -> AdminSectionOut:
+    s = Section(**body.model_dump())
+    session.add(s)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(
+            status_code=409, detail={"code": "conflict", "message": "引用的课程/教师/学期不存在。"}
+        )
+    await session.refresh(s)
+    return AdminSectionOut.model_validate(s)
+
+
+@router.patch("/sections/{section_id}", response_model=AdminSectionOut)
+async def update_section(
+    section_id: int, body: SectionUpdate, session: AsyncSession = Depends(get_session)
+) -> AdminSectionOut:
+    s = await session.get(Section, section_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found"})
+    for k, v in body.model_dump(exclude_unset=True).items():
+        setattr(s, k, v)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(
+            status_code=409, detail={"code": "conflict", "message": "引用的课程/教师/学期不存在。"}
+        )
+    await session.refresh(s)
+    return AdminSectionOut.model_validate(s)
+
+
+@router.delete("/sections/{section_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_section(section_id: int, session: AsyncSession = Depends(get_session)) -> None:
+    ref = (
+        await session.execute(
+            select(func.count())
+            .select_from(Enrollment)
+            .where(Enrollment.section_id == section_id)
+        )
+    ).scalar_one()
+    if ref > 0:
+        raise HTTPException(
+            status_code=409, detail={"code": "in_use", "message": "该教学班仍有学生选课，无法删除。"}
+        )
+    s = await session.get(Section, section_id)
+    if s is not None:
+        await session.delete(s)
+        await session.commit()
+
+
+# ---------- 学期 CRUD ----------
+async def _set_single_current(session: AsyncSession, semester_id: int) -> None:
+    """保证同一时刻只有一个 is_current 学期。"""
+    rows = (
+        await session.execute(
+            select(Semester).where(Semester.is_current.is_(True), Semester.id != semester_id)
+        )
+    ).scalars().all()
+    for r in rows:
+        r.is_current = False
+
+
+@router.get("/semesters", response_model=list[AdminSemesterOut])
+async def list_semesters(session: AsyncSession = Depends(get_session)) -> list[AdminSemesterOut]:
+    rows = (
+        await session.execute(select(Semester).order_by(Semester.id.desc()))
+    ).scalars().all()
+    return [AdminSemesterOut.model_validate(r) for r in rows]
+
+
+@router.post("/semesters", response_model=AdminSemesterOut)
+async def create_semester(
+    body: SemesterCreate, session: AsyncSession = Depends(get_session)
+) -> AdminSemesterOut:
+    sem = Semester(**body.model_dump())
+    session.add(sem)
+    await session.flush()
+    if sem.is_current:
+        await _set_single_current(session, sem.id)
+    await session.commit()
+    await session.refresh(sem)
+    return AdminSemesterOut.model_validate(sem)
+
+
+@router.patch("/semesters/{semester_id}", response_model=AdminSemesterOut)
+async def update_semester(
+    semester_id: int, body: SemesterUpdate, session: AsyncSession = Depends(get_session)
+) -> AdminSemesterOut:
+    sem = await session.get(Semester, semester_id)
+    if sem is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found"})
+    for k, v in body.model_dump(exclude_unset=True).items():
+        setattr(sem, k, v)
+    if sem.is_current:
+        await _set_single_current(session, sem.id)
+    await session.commit()
+    await session.refresh(sem)
+    return AdminSemesterOut.model_validate(sem)

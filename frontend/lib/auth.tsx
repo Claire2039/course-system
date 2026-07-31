@@ -27,6 +27,13 @@ export function useLogout() {
   };
 }
 
+export function roleHome(role: string | undefined): string {
+  if (role === "STUDENT") return "/student";
+  if (role === "TEACHER") return "/teacher";
+  if (role === "ADMIN") return "/admin";
+  return "/login";
+}
+
 export function RequireAuth({
   role,
   children,
@@ -54,7 +61,7 @@ export function RequireAuth({
   if (user.role !== role) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16 text-muted-foreground">
-        该账号角色（{user.role}）的前端尚在开发中（M7）。
+        无权访问该页面（当前角色：{user.role}）。
       </main>
     );
   }

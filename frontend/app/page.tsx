@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/lib/auth";
+import { roleHome, useUser } from "@/lib/auth";
 
-/** 根路径：按登录状态跳转（未登录→/login，学生→/student，其余→占位）。 */
+/** 根路径：按登录状态/角色跳转。 */
 export default function Home() {
   const { data: user, isLoading, isError } = useUser();
   const router = useRouter();
@@ -19,8 +19,9 @@ export default function Home() {
       router.replace("/login/change-password");
       return;
     }
-    router.replace("/student");
+    router.replace(roleHome(user.role));
   }, [isLoading, isError, user, router]);
 
   return <div className="p-8 text-muted-foreground">跳转中…</div>;
 }
+

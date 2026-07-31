@@ -89,6 +89,128 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/teachers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Teachers */
+        get: operations["list_teachers_api_v1_admin_teachers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Course */
+        post: operations["create_course_api_v1_admin_courses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/courses/{course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Course */
+        delete: operations["delete_course_api_v1_admin_courses__course_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Course */
+        patch: operations["update_course_api_v1_admin_courses__course_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Section */
+        post: operations["create_section_api_v1_admin_sections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sections/{section_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Section */
+        delete: operations["delete_section_api_v1_admin_sections__section_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Section */
+        patch: operations["update_section_api_v1_admin_sections__section_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/semesters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Semesters */
+        get: operations["list_semesters_api_v1_admin_semesters_get"];
+        put?: never;
+        /** Create Semester */
+        post: operations["create_semester_api_v1_admin_semesters_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/semesters/{semester_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Semester */
+        patch: operations["update_semester_api_v1_admin_semesters__semester_id__patch"];
+        trace?: never;
+    };
     "/api/v1/courses": {
         parameters: {
             query?: never;
@@ -413,6 +535,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Sections */
+        get: operations["my_sections_api_v1_me_sections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sections/{section_id}/roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Roster */
+        get: operations["roster_api_v1_sections__section_id__roster_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -457,6 +613,62 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminSectionOut */
+        AdminSectionOut: {
+            /** Id */
+            id: number;
+            /** Course Id */
+            course_id: number;
+            /** Teacher Id */
+            teacher_id: number;
+            /** Semester Id */
+            semester_id: number;
+            /** Capacity */
+            capacity: number;
+            /** Seats Taken */
+            seats_taken: number;
+            /** Room */
+            room: string;
+        };
+        /** AdminSemesterOut */
+        AdminSemesterOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Is Current */
+            is_current: boolean;
+            /**
+             * Enroll Open At
+             * Format: date-time
+             */
+            enroll_open_at: string;
+            /**
+             * Enroll Close At
+             * Format: date-time
+             */
+            enroll_close_at: string;
+            /**
+             * Drop Deadline
+             * Format: date-time
+             */
+            drop_deadline: string;
+            /** Max Credits */
+            max_credits: number;
+            /** Max Courses */
+            max_courses: number;
+        };
+        /** AdminTeacherOut */
+        AdminTeacherOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Teacher No */
+            teacher_no: string;
+            /** Department */
+            department: string;
+        };
         /** AssignmentOut */
         AssignmentOut: {
             /** Id */
@@ -510,6 +722,19 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** CourseCreate */
+        CourseCreate: {
+            /** Code */
+            code: string;
+            /** Title */
+            title: string;
+            /** Credits */
+            credits: number;
+            /** Description */
+            description?: string | null;
+            /** Department */
+            department: string;
+        };
         /** CourseDetail */
         CourseDetail: {
             /** Id */
@@ -556,6 +781,19 @@ export interface components {
             title: string;
             /** Credits */
             credits: number;
+        };
+        /** CourseUpdate */
+        CourseUpdate: {
+            /** Code */
+            code?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Credits */
+            credits?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Department */
+            department?: string | null;
         };
         /** CreateAssignmentRequest */
         CreateAssignmentRequest: {
@@ -692,6 +930,23 @@ export interface components {
             submission?: components["schemas"]["SubmissionOut"] | null;
             grade?: components["schemas"]["GradeOut"] | null;
         };
+        /**
+         * MySectionOut
+         * @description 我教的教学班。
+         */
+        MySectionOut: {
+            /** Id */
+            id: number;
+            course: components["schemas"]["CourseRef"];
+            /** Semester Id */
+            semester_id: number;
+            /** Capacity */
+            capacity: number;
+            /** Seats Taken */
+            seats_taken: number;
+            /** Enrolled Count */
+            enrolled_count: number;
+        };
         /** NotificationOut */
         NotificationOut: {
             /** Id */
@@ -765,6 +1020,15 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** RosterStudentOut */
+        RosterStudentOut: {
+            /** User Id */
+            user_id: number;
+            /** Name */
+            name: string;
+            /** Student No */
+            student_no: string;
+        };
         /**
          * RosterSubmissionOut
          * @description 教师花名册视图：学生 + 提交 + 成绩。
@@ -778,6 +1042,19 @@ export interface components {
             student_no: string;
             submission?: components["schemas"]["SubmissionOut"] | null;
             grade?: components["schemas"]["GradeOut"] | null;
+        };
+        /** SectionCreate */
+        SectionCreate: {
+            /** Course Id */
+            course_id: number;
+            /** Teacher Id */
+            teacher_id: number;
+            /** Semester Id */
+            semester_id: number;
+            /** Capacity */
+            capacity: number;
+            /** Room */
+            room: string;
         };
         /** SectionOut */
         SectionOut: {
@@ -800,6 +1077,65 @@ export interface components {
              * @description 剩余座位 = 容量 − 已选。
              */
             readonly available: number;
+        };
+        /** SectionUpdate */
+        SectionUpdate: {
+            /** Course Id */
+            course_id?: number | null;
+            /** Teacher Id */
+            teacher_id?: number | null;
+            /** Semester Id */
+            semester_id?: number | null;
+            /** Capacity */
+            capacity?: number | null;
+            /** Room */
+            room?: string | null;
+        };
+        /** SemesterCreate */
+        SemesterCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
+            /**
+             * Enroll Open At
+             * Format: date-time
+             */
+            enroll_open_at: string;
+            /**
+             * Enroll Close At
+             * Format: date-time
+             */
+            enroll_close_at: string;
+            /**
+             * Drop Deadline
+             * Format: date-time
+             */
+            drop_deadline: string;
+            /** Max Credits */
+            max_credits: number;
+            /** Max Courses */
+            max_courses: number;
+        };
+        /** SemesterUpdate */
+        SemesterUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Is Current */
+            is_current?: boolean | null;
+            /** Enroll Open At */
+            enroll_open_at?: string | null;
+            /** Enroll Close At */
+            enroll_close_at?: string | null;
+            /** Drop Deadline */
+            drop_deadline?: string | null;
+            /** Max Credits */
+            max_credits?: number | null;
+            /** Max Courses */
+            max_courses?: number | null;
         };
         /** StudentProfile */
         StudentProfile: {
@@ -1069,6 +1405,346 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportUsersResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_teachers_api_v1_admin_teachers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTeacherOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_course_api_v1_admin_courses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_course_api_v1_admin_courses__course_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_course_api_v1_admin_courses__course_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_section_api_v1_admin_sections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSectionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_section_api_v1_admin_sections__section_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_section_api_v1_admin_sections__section_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSectionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_semesters_api_v1_admin_semesters_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSemesterOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_semester_api_v1_admin_semesters_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemesterCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSemesterOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_semester_api_v1_admin_semesters__semester_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                semester_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemesterUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSemesterOut"];
                 };
             };
             /** @description Validation Error */
@@ -1740,6 +2416,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_sections_api_v1_me_sections_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySectionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    roster_api_v1_sections__section_id__roster_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterStudentOut"][];
                 };
             };
             /** @description Validation Error */
