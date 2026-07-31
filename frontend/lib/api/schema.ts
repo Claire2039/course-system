@@ -310,6 +310,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sections/{section_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Section Assignments */
+        get: operations["list_section_assignments_api_v1_sections__section_id__assignments_get"];
+        put?: never;
+        /** Create Assignment */
+        post: operations["create_assignment_api_v1_sections__section_id__assignments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sections/{section_id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Section Submissions */
+        get: operations["list_section_submissions_api_v1_sections__section_id__submissions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/{submission_id}/grade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grade Submission */
+        post: operations["grade_submission_api_v1_submissions__submission_id__grade_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Assignments */
+        get: operations["my_assignments_api_v1_me_assignments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assignments/{assignment_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Assignment */
+        post: operations["submit_assignment_api_v1_assignments__assignment_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/{submission_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Submission File */
+        get: operations["download_submission_file_api_v1_submissions__submission_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -354,10 +457,40 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AssignmentOut */
+        AssignmentOut: {
+            /** Id */
+            id: number;
+            /** Section Id */
+            section_id: number;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Late Deadline */
+            late_deadline?: string | null;
+            /** Allow Late */
+            allow_late: boolean;
+        };
         /** Body_import_users_api_v1_admin_import_users_post */
         Body_import_users_api_v1_admin_import_users_post: {
             /** File */
             file: string;
+        };
+        /** Body_submit_assignment_api_v1_assignments__assignment_id__submit_post */
+        Body_submit_assignment_api_v1_assignments__assignment_id__submit_post: {
+            /** File */
+            file?: string | null;
+            /**
+             * Text Comment
+             * @default
+             */
+            text_comment: string;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -424,6 +557,25 @@ export interface components {
             /** Credits */
             credits: number;
         };
+        /** CreateAssignmentRequest */
+        CreateAssignmentRequest: {
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Late Deadline */
+            late_deadline?: string | null;
+            /**
+             * Allow Late
+             * @default false
+             */
+            allow_late: boolean;
+        };
         /** EnrollResponse */
         EnrollResponse: {
             status: components["schemas"]["EnrollmentStatus"];
@@ -459,6 +611,25 @@ export interface components {
          * @enum {string}
          */
         EnrollmentStatus: "ENROLLED" | "WAITLISTED" | "DROPPED";
+        /** GradeOut */
+        GradeOut: {
+            /** Score */
+            score: number;
+            /** Feedback */
+            feedback?: string | null;
+            /**
+             * Graded At
+             * Format: date-time
+             */
+            graded_at: string;
+        };
+        /** GradeRequest */
+        GradeRequest: {
+            /** Score */
+            score: number;
+            /** Feedback */
+            feedback?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -511,6 +682,15 @@ export interface components {
              * @default true
              */
             ok: boolean;
+        };
+        /**
+         * MyAssignmentOut
+         * @description 学生"我的作业"视角：作业 + 我的提交 + 成绩。
+         */
+        MyAssignmentOut: {
+            assignment: components["schemas"]["AssignmentOut"];
+            submission?: components["schemas"]["SubmissionOut"] | null;
+            grade?: components["schemas"]["GradeOut"] | null;
         };
         /** NotificationOut */
         NotificationOut: {
@@ -585,6 +765,20 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * RosterSubmissionOut
+         * @description 教师花名册视图：学生 + 提交 + 成绩。
+         */
+        RosterSubmissionOut: {
+            /** Student Id */
+            student_id: number;
+            /** Student Name */
+            student_name: string;
+            /** Student No */
+            student_no: string;
+            submission?: components["schemas"]["SubmissionOut"] | null;
+            grade?: components["schemas"]["GradeOut"] | null;
+        };
         /** SectionOut */
         SectionOut: {
             /** Id */
@@ -616,6 +810,31 @@ export interface components {
             /** Major */
             major: string;
         };
+        /** SubmissionOut */
+        SubmissionOut: {
+            /** Id */
+            id: number;
+            /** Assignment Id */
+            assignment_id: number;
+            status: components["schemas"]["SubmissionStatus"];
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Has File
+             * @default false
+             */
+            has_file: boolean;
+            /** Text Comment */
+            text_comment?: string | null;
+        };
+        /**
+         * SubmissionStatus
+         * @enum {string}
+         */
+        SubmissionStatus: "SUBMITTED" | "LATE";
         /** TeacherOut */
         TeacherOut: {
             /** Id */
@@ -1278,6 +1497,249 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NotificationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_section_assignments_api_v1_sections__section_id__assignments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_assignment_api_v1_sections__section_id__assignments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_section_submissions_api_v1_sections__section_id__submissions_get: {
+        parameters: {
+            query: {
+                assignment_id: number;
+            };
+            header?: never;
+            path: {
+                section_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterSubmissionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grade_submission_api_v1_submissions__submission_id__grade_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_assignments_api_v1_me_assignments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyAssignmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_assignment_api_v1_assignments__assignment_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assignment_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_submit_assignment_api_v1_assignments__assignment_id__submit_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_submission_file_api_v1_submissions__submission_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -9,6 +9,7 @@ const NAV = [
   { href: "/student", label: "课程目录" },
   { href: "/student/schedule", label: "我的课表" },
   { href: "/student/waitlist", label: "我的候补" },
+  { href: "/student/assignments", label: "我的作业" },
   { href: "/student/notifications", label: "通知" },
 ];
 

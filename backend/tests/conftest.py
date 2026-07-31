@@ -12,12 +12,13 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.api.deps import get_session_store
+from app.api.deps import get_session_store, get_storage
 from app.core.redis import get_redis
 from app.db.base import Base
 from app.db.session import get_session
 from app.main import app
 from app.services.session_store import RedisSessionStore
+from app.services.storage import InMemoryStorage
 
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 
@@ -44,6 +45,8 @@ async def auth_db():
     app.dependency_overrides[get_session] = _get_session
     app.dependency_overrides[get_session_store] = _get_store
     app.dependency_overrides[get_redis] = lambda: fake
+    storage = InMemoryStorage()
+    app.dependency_overrides[get_storage] = lambda: storage
     try:
         yield Session
     finally:

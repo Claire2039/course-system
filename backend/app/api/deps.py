@@ -14,6 +14,17 @@ from app.db.session import get_session
 from app.models import User
 from app.models.constants import UserRole
 from app.services.session_store import RedisSessionStore, SessionStore
+from app.services.storage import MinioStorage, StorageClient
+
+_storage_singleton: StorageClient | None = None
+
+
+def get_storage() -> StorageClient:
+    """对象存储依赖（懒构造 MinioStorage；测试覆盖为 InMemoryStorage）。"""
+    global _storage_singleton
+    if _storage_singleton is None:
+        _storage_singleton = MinioStorage()
+    return _storage_singleton
 
 
 def get_session_store(request: Request) -> SessionStore:
