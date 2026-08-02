@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 from fastapi import Cookie, Depends, HTTPException, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.db.session import get_session
@@ -49,7 +51,13 @@ async def get_current_user(
             status_code=401,
             detail={"code": "unauthenticated", "message": "会话已过期或无效。"},
         )
-    user = await session.get(User, data.user_id)
+    user = (
+        await session.execute(
+            select(User)
+            .options(selectinload(User.student), selectinload(User.teacher))
+            .where(User.id == data.user_id)
+        )
+    ).scalar_one_or_none()
     if user is None:
         await store.delete(token)  # 孤儿会话：清理掉
         raise HTTPException(

@@ -9,6 +9,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_session_store
 from app.core.config import settings
@@ -50,7 +51,11 @@ async def login(
 ) -> LoginResponse:
     # 反枚举：邮箱不存在与口令错误返回同一个 401。
     user = (
-        await session.execute(select(User).where(User.email == body.email))
+        await session.execute(
+            select(User)
+            .options(selectinload(User.student), selectinload(User.teacher))
+            .where(User.email == body.email)
+        )
     ).scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(
         user.password_hash, body.password
