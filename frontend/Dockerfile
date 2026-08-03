@@ -1,5 +1,6 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
+ENV npm_config_registry=https://registry.npmmirror.com
 COPY package.json package-lock.json* ./
 RUN npm ci || npm install
 
