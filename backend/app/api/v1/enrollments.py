@@ -71,9 +71,8 @@ async def my_enrollments(
         await session.execute(
             select(Enrollment)
             .options(
-                selectinload(Enrollment.section)
-                .selectinload(Section.course)
-                .selectinload(Section.time_slots)
+                selectinload(Enrollment.section).selectinload(Section.course),
+                selectinload(Enrollment.section).selectinload(Section.time_slots),
             )
             .where(
                 Enrollment.student_id == user.id,
@@ -94,9 +93,8 @@ async def my_waitlist(
         await session.execute(
             select(Enrollment)
             .options(
-                selectinload(Enrollment.section)
-                .selectinload(Section.course)
-                .selectinload(Section.time_slots)
+                selectinload(Enrollment.section).selectinload(Section.course),
+                selectinload(Enrollment.section).selectinload(Section.time_slots),
             )
             .where(
                 Enrollment.student_id == user.id,
