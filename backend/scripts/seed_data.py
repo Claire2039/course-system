@@ -180,7 +180,7 @@ async def _seed_teachers(session: AsyncSession, shared_hash: str) -> list[Teache
                 password_hash=shared_hash,
                 role=UserRole.TEACHER,
                 name=name,
-                must_change_password=True,
+                must_change_password=False,
                 teacher=Teacher(
                     teacher_no=f"T{idx:04d}",
                     department=dept,
@@ -206,7 +206,7 @@ async def _seed_students(session: AsyncSession, shared_hash: str) -> None:
                 password_hash=shared_hash,
                 role=UserRole.STUDENT,
                 name=f"{surnames[i % len(surnames)]}{given[i % len(given)]}",
-                must_change_password=True,
+                must_change_password=False,
                 student=Student(
                     student_no=f"S{idx:06d}",
                     grade=GRADES[i % len(GRADES)],
