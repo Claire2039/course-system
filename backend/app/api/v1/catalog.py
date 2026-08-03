@@ -47,7 +47,7 @@ def _section_out(s: Section) -> SectionOut:
         room=s.room,
         semester_id=s.semester_id,
         course=CourseRef.model_validate(s.course),
-        teacher=TeacherRef(name=s.teacher.user.name, teacher_no=s.teacher.teacher_no),
+        teacher=TeacherRef(name=s.teacher.user.name, teacher_no=s.teacher.teacher_no, bio=s.teacher.bio),
         time_slots=[TimeSlotOut.model_validate(t) for t in s.time_slots],
     )
 

@@ -781,6 +781,8 @@ export interface components {
             title: string;
             /** Credits */
             credits: number;
+            /** Description */
+            description?: string | null;
         };
         /** CourseUpdate */
         CourseUpdate: {
@@ -1183,6 +1185,8 @@ export interface components {
             department: string;
             /** Title */
             title: string;
+            /** Bio */
+            bio?: string | null;
         };
         /** TeacherProfile */
         TeacherProfile: {
@@ -1202,6 +1206,8 @@ export interface components {
             name: string;
             /** Teacher No */
             teacher_no: string;
+            /** Bio */
+            bio?: string | null;
         };
         /** TimeSlotOut */
         TimeSlotOut: {

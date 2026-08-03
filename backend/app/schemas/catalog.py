@@ -48,6 +48,7 @@ class CourseRef(BaseModel):
     code: str
     title: str
     credits: int
+    description: str | None = None
 
 
 class TeacherRef(BaseModel):
@@ -55,6 +56,7 @@ class TeacherRef(BaseModel):
 
     name: str
     teacher_no: str
+    bio: str | None = None
 
 
 class PrereqRef(BaseModel):
@@ -83,6 +85,7 @@ class TeacherOut(BaseModel):
     teacher_no: str
     department: str
     title: str
+    bio: str | None = None
 
 
 class SectionOut(BaseModel):

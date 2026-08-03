@@ -14,6 +14,7 @@ from sqlalchemy import (
     Identity,
     Integer,
     String,
+    Text,
     func,
     text,
 )
@@ -78,5 +79,6 @@ class Teacher(Base):
     teacher_no: Mapped[str] = mapped_column(String(32), unique=True)
     department: Mapped[str] = mapped_column(String(64))
     title: Mapped[str] = mapped_column(String(64))
+    bio: Mapped[str | None] = mapped_column(Text)
 
     user: Mapped["User"] = relationship(back_populates="teacher")
