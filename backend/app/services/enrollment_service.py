@@ -186,7 +186,7 @@ async def enroll(
         raise EnrollmentError(429, "rate_limited", "选课过于频繁，请稍后再试。")
     redis_full = await _redis_says_full(client, section_id)
 
-    async with session.begin():
+    try:
         section = (
             await session.execute(
                 select(Section)
@@ -261,6 +261,10 @@ async def enroll(
             {"section_id": section_id, "position": position},
         )
         result = EnrollmentResult(status, enrollment_id, position)
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
 
     # 提交后：刷新门槛快照 + 发布通知（best-effort）
     await _refresh_snapshot(client, section_id, section.capacity, new_seats)
@@ -318,7 +322,7 @@ async def drop(
     student_id: int,
     enrollment_id: int,
 ) -> None:
-    async with session.begin():
+    try:
         enr = await session.get(Enrollment, enrollment_id)
         if enr is None:
             raise EnrollmentError(404, "enrollment_not_found", "选课记录不存在。")
@@ -347,6 +351,10 @@ async def drop(
             await notify(
                 session, promoted_student, "promoted", {"section_id": section.id}
             )
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
 
     # 提交后 best-effort 通知
     await publish_event(client, student_id, "dropped", {"section_id": section.id})
