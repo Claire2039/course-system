@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
 import { ToasterProvider } from "@/components/toaster";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,12 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body>
         <Providers>
-          <ToasterProvider>{children}</ToasterProvider>
+          <div className="flex min-h-screen flex-col">
+            <div className="flex-1">
+              <ToasterProvider>{children}</ToasterProvider>
+            </div>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
