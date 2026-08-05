@@ -381,6 +381,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/schedule.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Schedule Ics
+         * @description 导出当前学期课表为 iCalendar（.ics），按周重复 16 周。
+         */
+        get: operations["my_schedule_ics_api_v1_me_schedule_ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/waitlist": {
         parameters: {
             query?: never;
@@ -722,6 +742,12 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * CourseCategory
+         * @description 课程性质（值即中文标签，便于直接展示与肉眼读库）。
+         * @enum {string}
+         */
+        CourseCategory: "通识教育课" | "公共基础必修课" | "专业必修课" | "专业选修课" | "通识选修课";
         /** CourseCreate */
         CourseCreate: {
             /** Code */
@@ -747,8 +773,16 @@ export interface components {
             credits: number;
             /** Department */
             department: string;
+            category: components["schemas"]["CourseCategory"];
+            /** Cover Url */
+            cover_url?: string | null;
             /** Description */
             description?: string | null;
+            /**
+             * Syllabus
+             * @default []
+             */
+            syllabus: components["schemas"]["SyllabusItem"][];
             /**
              * Prerequisites
              * @default []
@@ -767,6 +801,9 @@ export interface components {
             credits: number;
             /** Department */
             department: string;
+            category: components["schemas"]["CourseCategory"];
+            /** Cover Url */
+            cover_url?: string | null;
             /** Description */
             description?: string | null;
         };
@@ -1173,6 +1210,46 @@ export interface components {
          * @enum {string}
          */
         SubmissionStatus: "SUBMITTED" | "LATE";
+        /**
+         * SyllabusItem
+         * @description 教学进度表的一周条目。
+         */
+        SyllabusItem: {
+            /** Week */
+            week: number;
+            /** Title */
+            title: string;
+            /** Detail */
+            detail?: string | null;
+        };
+        /**
+         * TeacherDetail
+         * @description 教师详情页：含教育经历与文献成果（JSONB）。
+         */
+        TeacherDetail: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Teacher No */
+            teacher_no: string;
+            /** Department */
+            department: string;
+            /** Title */
+            title: string;
+            /** Bio */
+            bio?: string | null;
+            /** Research Interests */
+            research_interests?: string | null;
+            /** Education */
+            education?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Publications */
+            publications?: {
+                [key: string]: unknown;
+            }[] | null;
+        };
         /** TeacherOut */
         TeacherOut: {
             /** Id */
@@ -1187,6 +1264,8 @@ export interface components {
             title: string;
             /** Bio */
             bio?: string | null;
+            /** Research Interests */
+            research_interests?: string | null;
         };
         /** TeacherProfile */
         TeacherProfile: {
@@ -1953,7 +2032,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TeacherOut"];
+                    "application/json": components["schemas"]["TeacherDetail"];
                 };
             };
             /** @description Validation Error */
@@ -2084,6 +2163,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EnrollmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_schedule_ics_api_v1_me_schedule_ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -56,6 +56,7 @@ class CourseRef(BaseModel):
 class TeacherRef(BaseModel):
     """教学班里嵌入的教师摘要（name 来自 User）。"""
 
+    id: int  # = user_id，用于跳转教师详情
     name: str
     teacher_no: str
     bio: str | None = None
