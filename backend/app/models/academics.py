@@ -71,6 +71,7 @@ class Course(Base, TimestampMixin):
             create_constraint=True,
             validate_strings=True,
             length=32,
+            values_callable=lambda e: [m.value for m in e],
         ),
         nullable=False,
     )
