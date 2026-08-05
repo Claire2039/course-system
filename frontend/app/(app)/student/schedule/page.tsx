@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { apiErrorMessage } from "@/lib/api/errors";
+import { useToast } from "@/components/toaster";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ const DAY_NAMES = ["", "周一", "周二", "周三", "周四", "周五", "周六
 
 export default function SchedulePage() {
   const qc = useQueryClient();
+  const { toast } = useToast();
 
   const enrQ = useQuery({
     queryKey: ["enrollments"],
@@ -40,7 +42,9 @@ export default function SchedulePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["enrollments"] });
       qc.invalidateQueries({ queryKey: ["sections"] });
+      toast("已退课", "success");
     },
+    onError: (e: Error) => toast(e.message, "error"),
   });
 
   const periods = periodsQ.data ?? [];
@@ -54,6 +58,24 @@ export default function SchedulePage() {
         grid[`${ts.day_of_week}-${p}`] = e.section.course.code;
       }
     }
+  }
+
+  const API = process.env.NEXT_PUBLIC_API_BASE ?? "";
+  async function exportIcs() {
+    const res = await fetch(`${API}/api/v1/me/schedule.ics`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      toast("导出失败，请重试", "error");
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "schedule.ics";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   if (enrQ.isError || periodsQ.isError) {
@@ -71,7 +93,12 @@ export default function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">我的课表</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">我的课表</h1>
+        <Button size="sm" variant="outline" onClick={exportIcs}>
+          导出 .ics
+        </Button>
+      </div>
       <Card>
         <CardContent className="overflow-x-auto p-4">
           <table className="w-full border-collapse text-sm">

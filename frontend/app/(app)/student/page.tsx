@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { apiErrorMessage } from "@/lib/api/errors";
@@ -8,11 +8,14 @@ import { useToast } from "@/components/toaster";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 export default function CatalogPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [selected, setSelected] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [dept, setDept] = useState("");
 
   const coursesQ = useQuery({
     queryKey: ["courses"],
@@ -69,6 +72,24 @@ export default function CatalogPage() {
     onError: (e: Error) => toast(e.message, "error"),
   });
 
+  const allCourses = coursesQ.data?.items ?? [];
+  const departments = useMemo(
+    () => [...new Set(allCourses.map((c) => c.department))].sort(),
+    [allCourses]
+  );
+  const filtered = allCourses.filter((c) => {
+    if (dept && c.department !== dept) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      if (
+        !c.code.toLowerCase().includes(q) &&
+        !c.title.toLowerCase().includes(q)
+      )
+        return false;
+    }
+    return true;
+  });
+
   const enrolledIds = new Set((enrQ.data ?? []).map((e) => e.section_id));
 
   return (
@@ -76,11 +97,29 @@ export default function CatalogPage() {
       <h1 className="text-2xl font-bold tracking-tight">课程目录</h1>
       <div className="grid gap-6 md:grid-cols-[300px_1fr]">
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-2">
             <CardTitle className="text-base">课程</CardTitle>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索代码 / 名称…"
+              className="h-8 text-sm"
+            />
+            <select
+              value={dept}
+              onChange={(e) => setDept(e.target.value)}
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="">全部专业</option>
+              {departments.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
           </CardHeader>
           <CardContent className="space-y-1">
-            {(coursesQ.data?.items ?? []).map((c) => (
+            {filtered.map((c) => (
               <button
                 key={c.id}
                 onClick={() => setSelected(c.id)}
@@ -95,12 +134,23 @@ export default function CatalogPage() {
             {coursesQ.isLoading && (
               <p className="px-2 py-1 text-sm text-muted-foreground">加载中…</p>
             )}
+            {coursesQ.isError && (
+              <p className="px-2 py-1 text-sm text-destructive">
+                课程加载失败，请刷新重试。
+              </p>
+            )}
+            {!coursesQ.isLoading && !coursesQ.isError && filtered.length === 0 && (
+              <p className="px-2 py-1 text-sm text-muted-foreground">无匹配课程。</p>
+            )}
           </CardContent>
         </Card>
 
         <div className="space-y-3">
           {selected === null && (
             <p className="text-muted-foreground">← 选择左侧课程查看教学班</p>
+          )}
+          {sectionsQ.isError && (
+            <p className="text-sm text-destructive">教学班加载失败，请刷新重试。</p>
           )}
           {(sectionsQ.data?.items ?? []).map((s) => {
             const enrolled = enrolledIds.has(s.id);

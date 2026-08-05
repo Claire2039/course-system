@@ -19,6 +19,8 @@ export default function WaitlistPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">我的候补</h1>
       <div className="space-y-2">
+        {q.isLoading && <p className="text-muted-foreground">加载中…</p>}
+        {q.isError && <p className="text-destructive">加载失败，请刷新重试。</p>}
         {(q.data ?? []).map((e) => (
           <Card key={e.id}>
             <CardContent className="flex items-center justify-between p-4">
@@ -32,7 +34,7 @@ export default function WaitlistPage() {
             </CardContent>
           </Card>
         ))}
-        {(q.data ?? []).length === 0 && (
+        {!q.isLoading && !q.isError && (q.data ?? []).length === 0 && (
           <p className="text-muted-foreground">暂无候补。</p>
         )}
       </div>

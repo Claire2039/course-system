@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { components } from "@/lib/api/schema";
 import { apiClient } from "@/lib/api/client";
+import { useToast } from "@/components/toaster";
 import { Button } from "@/components/ui/button";
 
 const API = process.env.NEXT_PUBLIC_API_BASE ?? "";
@@ -24,10 +25,14 @@ export default function AssignmentsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">我的作业</h1>
       <div className="space-y-3">
+        {q.isLoading && <p className="text-muted-foreground">加载中…</p>}
+        {q.isError && (
+          <p className="text-destructive">作业加载失败，请刷新重试。</p>
+        )}
         {(q.data ?? []).map((item) => (
           <AssignmentCard key={item.assignment.id} item={item} />
         ))}
-        {(q.data ?? []).length === 0 && (
+        {!q.isLoading && !q.isError && (q.data ?? []).length === 0 && (
           <p className="text-muted-foreground">暂无作业。</p>
         )}
       </div>
@@ -37,9 +42,9 @@ export default function AssignmentsPage() {
 
 function AssignmentCard({ item }: { item: MyAssignment }) {
   const qc = useQueryClient();
+  const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
   const a = item.assignment;
   const sub = item.submission;
   const grade = item.grade;
@@ -63,12 +68,12 @@ function AssignmentCard({ item }: { item: MyAssignment }) {
       return res.json();
     },
     onSuccess: () => {
-      setMsg("已提交 ✓");
+      toast("作业已提交 ✓", "success");
       setFile(null);
       setText("");
       qc.invalidateQueries({ queryKey: ["assignments"] });
     },
-    onError: (e: Error) => setMsg(e.message),
+    onError: (e: Error) => toast(e.message, "error"),
   });
 
   async function download() {
@@ -142,7 +147,6 @@ function AssignmentCard({ item }: { item: MyAssignment }) {
             </Button>
           )}
         </div>
-        {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
       </div>
     </div>
   );
