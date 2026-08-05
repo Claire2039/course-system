@@ -12,6 +12,8 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, computed_field
 
+from app.models.constants import CourseCategory
+
 T = TypeVar("T")
 
 
@@ -64,6 +66,14 @@ class PrereqRef(BaseModel):
     title: str
 
 
+class SyllabusItem(BaseModel):
+    """教学进度表的一周条目。"""
+
+    week: int
+    title: str
+    detail: str | None = None
+
+
 class CourseOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -72,10 +82,13 @@ class CourseOut(BaseModel):
     title: str
     credits: int
     department: str
+    category: CourseCategory
+    cover_url: str | None = None
     description: str | None = None
 
 
 class CourseDetail(CourseOut):
+    syllabus: list[SyllabusItem] = []
     prerequisites: list[PrereqRef] = []
 
 
@@ -86,6 +99,14 @@ class TeacherOut(BaseModel):
     department: str
     title: str
     bio: str | None = None
+    research_interests: str | None = None
+
+
+class TeacherDetail(TeacherOut):
+    """教师详情页：含教育经历与文献成果（JSONB）。"""
+
+    education: list[dict] | None = None
+    publications: list[dict] | None = None
 
 
 class SectionOut(BaseModel):

@@ -34,7 +34,12 @@ from app.models import (  # noqa: F401  导入即注册模型
     TimeSlot,
     User,
 )
-from app.models.constants import EnrollmentStatus, SubmissionStatus, UserRole
+from app.models.constants import (
+    CourseCategory,
+    EnrollmentStatus,
+    SubmissionStatus,
+    UserRole,
+)
 
 # ---------- 生成参数 ----------
 TEACHER_TITLES = ["教授", "副教授", "副教授", "讲师"]  # 权重：副教授多
@@ -94,6 +99,17 @@ COURSES = [
     ("CS401", "软件工程", 3, "计算机科学与技术", "软件生命周期、需求分析、设计与测试方法，工程化软件开发实践。"),
     ("EE301", "通信原理", 3, "电子信息工程", "模拟与数字调制、信道与噪声、信息论基础。"),
     ("ME301", "制造技术基础", 3, "机械工程", "切削加工、铸造、锻压与 modern 制造工艺。"),
+    # 公共基础必修课
+    ("MAT101", "高等数学", 5, "公共基础", "极限、连续、一元与多元微积分、级数与常微分方程，工科最重要的数学基础。"),
+    ("ENG101", "大学英语", 4, "公共基础", "听说读写译综合训练，培养学术英语交流与跨文化沟通能力。"),
+    ("PED101", "体育", 2, "公共基础", "体质测评与多项运动技能训练，养成终身锻炼习惯。"),
+    ("POL101", "思想道德与法治", 3, "公共基础", "人生观、价值观与法治素养教育，思想政治理论核心课程。"),
+    # 通识教育课
+    ("CUL101", "中国传统文化", 2, "通识教育", "儒道思想、传统艺术与民俗，理解中华文化的精神内核与当代价值。"),
+    ("ART101", "艺术鉴赏", 2, "通识教育", "音乐、美术、戏剧作品的欣赏方法与审美体验。"),
+    # 通识选修课
+    ("PSY201", "大学生心理健康", 2, "通识教育", "自我认知、情绪管理与人际交往，促进心理健康发展。"),
+    ("CAR201", "大学生职业规划", 1, "通识教育", "专业认知、职业探索与生涯决策，规划大学与未来发展。"),
 ]
 
 # 先修关系：(课程代码, 先修课代码) —— 仅高级课，入门课无先修，方便演示
@@ -113,6 +129,84 @@ TOPICS = [
     "建筑设计及其理论", "城乡规划与遗产保护", "计算机视觉", "嵌入式系统",
     "微电子与半导体", "信号处理", "车辆工程", "工程力学",
 ]
+
+UNIVERSITIES = [
+    "华侨大学",
+    "厦门大学",
+    "清华大学",
+    "浙江大学",
+    "上海交通大学",
+    "复旦大学",
+    "北京大学",
+    "华中科技大学",
+]
+VENUES = [
+    "计算机学报",
+    "电子学报",
+    "机械工程学报",
+    "土木工程学报",
+    "中国科学",
+    "高等教育研究",
+]
+SYLLABUS_TEMPLATE = [
+    "导论：课程研究对象与学习方法",
+    "基本概念与基本原理",
+    "核心理论（一）",
+    "核心理论（二）",
+    "典型方法与计算",
+    "应用与案例分析",
+    "进阶专题（一）",
+    "进阶专题（二）",
+    "实验与实践环节",
+    "综合大作业与讨论",
+    "复习与期末考查",
+]
+
+
+def _category_for(code: str) -> CourseCategory:
+    """按课程代码推断课程性质。"""
+    if code.startswith(("MAT", "ENG", "PED", "POL")):
+        return CourseCategory.PUBLIC_REQUIRED
+    if code.startswith(("CUL", "ART")):
+        return CourseCategory.GENERAL_EDU
+    if code.startswith(("PSY", "CAR")):
+        return CourseCategory.GENERAL_ELECTIVE
+    num = int(code[-3:])
+    return CourseCategory.MAJOR_REQUIRED if num <= 102 else CourseCategory.MAJOR_ELECTIVE
+
+
+def _syllabus_for(title: str) -> list[dict]:
+    topics = list(SYLLABUS_TEMPLATE)
+    topics[0] = f"导论：{title}概述"
+    return [{"week": i + 1, "title": t, "detail": None} for i, t in enumerate(topics)]
+
+
+def _education_for(i: int) -> list[dict]:
+    u = UNIVERSITIES[i % len(UNIVERSITIES)]
+    base = 2000 + (i % 12)
+    return [
+        {"degree": "博士", "institution": u, "year": base + 6},
+        {"degree": "硕士", "institution": u, "year": base + 3},
+        {"degree": "本科", "institution": u, "year": base},
+    ]
+
+
+def _publications_for(i: int) -> list[dict]:
+    topic = TOPICS[i % len(TOPICS)]
+    y = 2018 + (i % 7)
+    return [
+        {"title": f"基于{topic}的关键技术研究", "venue": VENUES[i % len(VENUES)], "year": y},
+        {
+            "title": f"{topic}在本科教学中的应用实践",
+            "venue": VENUES[(i + 1) % len(VENUES)],
+            "year": y + 1,
+        },
+        {
+            "title": f"{topic}发展前沿综述",
+            "venue": VENUES[(i + 2) % len(VENUES)],
+            "year": y + 2,
+        },
+    ]
 
 
 def _hash_password(plain: str) -> str:
@@ -191,6 +285,9 @@ async def _seed_teachers(session: AsyncSession, shared_hash: str) -> list[Teache
                     department=dept,
                     title=title,
                     bio=bio,
+                    research_interests=topic,
+                    education=_education_for(i),
+                    publications=_publications_for(i),
                 ),
             )
         )
@@ -248,7 +345,16 @@ async def _seed_courses(session: AsyncSession) -> list[Course]:
     courses: list[Course] = []
     for code, title, credits, dept, desc in COURSES:
         courses.append(
-            Course(code=code, title=title, credits=credits, description=desc, department=dept)
+            Course(
+                code=code,
+                title=title,
+                credits=credits,
+                description=desc,
+                department=dept,
+                category=_category_for(code),
+                syllabus=_syllabus_for(title),
+                cover_url=f"/covers/{code}.svg",
+            )
         )
     session.add_all(courses)
     await session.flush()

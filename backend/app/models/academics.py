@@ -20,9 +20,12 @@ from sqlalchemy import (
     func,
     text,
 )
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
+from app.models.constants import CourseCategory
 
 
 class Semester(Base, TimestampMixin):
@@ -61,6 +64,18 @@ class Course(Base, TimestampMixin):
     credits: Mapped[int] = mapped_column(SmallInteger)
     description: Mapped[str | None] = mapped_column(Text)
     department: Mapped[str] = mapped_column(String(64))
+    category: Mapped[CourseCategory] = mapped_column(
+        SAEnum(
+            CourseCategory,
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            length=32,
+        ),
+        nullable=False,
+    )
+    syllabus: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    cover_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     sections: Mapped[list["Section"]] = relationship(back_populates="course")
     # 本课要求的先修课；及本课作为哪些课的先修课（M:N 自引用）

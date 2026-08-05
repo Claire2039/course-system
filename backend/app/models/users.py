@@ -19,6 +19,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -80,5 +81,8 @@ class Teacher(Base):
     department: Mapped[str] = mapped_column(String(64))
     title: Mapped[str] = mapped_column(String(64))
     bio: Mapped[str | None] = mapped_column(Text)
+    research_interests: Mapped[str | None] = mapped_column(Text)
+    education: Mapped[list | None] = mapped_column(JSONB)
+    publications: Mapped[list | None] = mapped_column(JSONB)
 
     user: Mapped["User"] = relationship(back_populates="teacher")

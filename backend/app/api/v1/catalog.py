@@ -22,6 +22,7 @@ from app.schemas.catalog import (
     PeriodDefOut,
     PrereqRef,
     SectionOut,
+    TeacherDetail,
     TeacherOut,
     TeacherRef,
     TimeSlotOut,
@@ -101,7 +102,10 @@ async def get_course(
         title=c.title,
         credits=c.credits,
         department=c.department,
+        category=c.category,
+        cover_url=c.cover_url,
         description=c.description,
+        syllabus=c.syllabus or [],
         prerequisites=[
             PrereqRef(code=p.prereq_course.code, title=p.prereq_course.title)
             for p in c.prerequisites
@@ -189,10 +193,10 @@ async def list_teachers(
     )
 
 
-@router.get("/teachers/{teacher_id}", response_model=TeacherOut)
+@router.get("/teachers/{teacher_id}", response_model=TeacherDetail)
 async def get_teacher(
     teacher_id: int, session: AsyncSession = Depends(get_session)
-) -> TeacherOut:
+) -> TeacherDetail:
     stmt = (
         select(Teacher)
         .options(selectinload(Teacher.user))
@@ -201,12 +205,16 @@ async def get_teacher(
     t = (await session.execute(stmt)).scalar_one_or_none()
     if t is None:
         raise HTTPException(status_code=404, detail={"code": "not_found"})
-    return TeacherOut(
+    return TeacherDetail(
         id=t.user_id,
         name=t.user.name,
         teacher_no=t.teacher_no,
         department=t.department,
         title=t.title,
+        bio=t.bio,
+        research_interests=t.research_interests,
+        education=t.education,
+        publications=t.publications,
     )
 
 

@@ -23,3 +23,13 @@ class EnrollmentStatus(StrEnum):
 class SubmissionStatus(StrEnum):
     SUBMITTED = "SUBMITTED"
     LATE = "LATE"
+
+
+class CourseCategory(StrEnum):
+    """课程性质（值即中文标签，便于直接展示与肉眼读库）。"""
+
+    GENERAL_EDU = "通识教育课"
+    PUBLIC_REQUIRED = "公共基础必修课"
+    MAJOR_REQUIRED = "专业必修课"
+    MAJOR_ELECTIVE = "专业选修课"
+    GENERAL_ELECTIVE = "通识选修课"
