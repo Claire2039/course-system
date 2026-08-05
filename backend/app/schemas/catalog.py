@@ -103,11 +103,23 @@ class TeacherOut(BaseModel):
     research_interests: str | None = None
 
 
+class EducationEntry(BaseModel):
+    degree: str
+    institution: str
+    year: int
+
+
+class Publication(BaseModel):
+    title: str
+    venue: str
+    year: int
+
+
 class TeacherDetail(TeacherOut):
     """教师详情页：含教育经历与文献成果（JSONB）。"""
 
-    education: list[dict] | None = None
-    publications: list[dict] | None = None
+    education: list[EducationEntry] | None = None
+    publications: list[Publication] | None = None
 
 
 class SectionOut(BaseModel):

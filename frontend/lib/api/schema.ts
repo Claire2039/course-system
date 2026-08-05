@@ -1281,6 +1281,8 @@ export interface components {
          * @description 教学班里嵌入的教师摘要（name 来自 User）。
          */
         TeacherRef: {
+            /** Id */
+            id: number;
             /** Name */
             name: string;
             /** Teacher No */
