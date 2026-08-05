@@ -1,0 +1,17 @@
+# Use LF line endings everywhere — this project deploys to Linux servers.
+# Without this, core.autocrlf=true on Windows makes `git archive` emit CRLF,
+# which breaks server-side shell scripts (e.g. fulldeploy.sh: "unknown docker
+# command: compose build\r", alembic "revision 'head\r'").
+* text=auto eol=lf
+
+# Binary artifacts — never normalize line endings.
+*.gz   binary
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
