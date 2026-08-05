@@ -853,6 +853,15 @@ export interface components {
              */
             allow_late: boolean;
         };
+        /** EducationEntry */
+        EducationEntry: {
+            /** Degree */
+            degree: string;
+            /** Institution */
+            institution: string;
+            /** Year */
+            year: number;
+        };
         /** EnrollResponse */
         EnrollResponse: {
             status: components["schemas"]["EnrollmentStatus"];
@@ -1059,6 +1068,15 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** Publication */
+        Publication: {
+            /** Title */
+            title: string;
+            /** Venue */
+            venue: string;
+            /** Year */
+            year: number;
+        };
         /** RosterStudentOut */
         RosterStudentOut: {
             /** User Id */
@@ -1242,13 +1260,9 @@ export interface components {
             /** Research Interests */
             research_interests?: string | null;
             /** Education */
-            education?: {
-                [key: string]: unknown;
-            }[] | null;
+            education?: components["schemas"]["EducationEntry"][] | null;
             /** Publications */
-            publications?: {
-                [key: string]: unknown;
-            }[] | null;
+            publications?: components["schemas"]["Publication"][] | null;
         };
         /** TeacherOut */
         TeacherOut: {
