@@ -9,11 +9,15 @@ from app.schemas.catalog import TimeSlotOut
 
 
 class CourseBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     code: str
     title: str
 
 
 class EnrollmentSection(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     course: CourseBrief
     time_slots: list[TimeSlotOut] = []

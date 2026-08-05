@@ -21,6 +21,7 @@ from app.db.session import AsyncSessionLocal
 from app.models import (  # noqa: F401  导入即注册模型
     Course,
     CoursePrerequisite,
+    Enrollment,
     PeriodDef,
     Section,
     Semester,
@@ -29,7 +30,7 @@ from app.models import (  # noqa: F401  导入即注册模型
     TimeSlot,
     User,
 )
-from app.models.constants import UserRole
+from app.models.constants import EnrollmentStatus, UserRole
 
 # ---------- 生成参数 ----------
 TEACHER_TITLES = ["教授", "副教授", "副教授", "讲师"]  # 权重：副教授多
@@ -319,6 +320,48 @@ async def _seed_time_slots(session: AsyncSession, sections: list[Section]) -> No
     await session.flush()
 
 
+async def _seed_enrollments(session: AsyncSession, sections: list[Section]) -> None:
+    """给前若干演示学生选几门课，便于登录后直接看到课表内容。
+
+    直接插入 Enrollment 行并同步 seats_taken（绕过运行时选课服务/Redis）。
+    只用容量充裕的教学班，跳过末尾 capacity=1 的超卖演示班。
+    """
+    pool = [s for s in sections if s.capacity > 1]
+    if len(pool) < 5:
+        return
+    # 取 5 门不同课程的教学班，避免同一学生选到同课的不同班
+    seen_courses: set[int] = set()
+    chosen: list[Section] = []
+    for s in pool:
+        if s.course_id not in seen_courses:
+            seen_courses.add(s.course_id)
+            chosen.append(s)
+        if len(chosen) == 5:
+            break
+    if len(chosen) < 5:
+        return
+    demo_student_ids = list(range(22, 22 + 5))  # student0001..student0005
+    seats: dict[int, int] = {s.id: 0 for s in chosen}
+    rows: list[Enrollment] = []
+    for i, uid in enumerate(demo_student_ids):
+        # 每个学生循环选 3 个班（步长 1，保证同一学生不重复）
+        for j in range(3):
+            sec = chosen[(i + j) % len(chosen)]
+            rows.append(
+                Enrollment(
+                    student_id=uid,
+                    section_id=sec.id,
+                    status=EnrollmentStatus.ENROLLED,
+                    waitlist_position=None,
+                )
+            )
+            seats[sec.id] += 1
+    session.add_all(rows)
+    for s in chosen:
+        s.seats_taken = seats[s.id]
+    await session.flush()
+
+
 # ---------- 入口 ----------
 async def main(reset: bool) -> None:
     async with AsyncSessionLocal() as session:
@@ -340,6 +383,7 @@ async def main(reset: bool) -> None:
         await _seed_prerequisites(session, courses)
         sections = await _seed_sections(session, courses, teachers, semester)
         await _seed_time_slots(session, sections)
+        await _seed_enrollments(session, sections)
 
         await session.commit()
 

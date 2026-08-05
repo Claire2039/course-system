@@ -56,6 +56,19 @@ export default function SchedulePage() {
     }
   }
 
+  if (enrQ.isError || periodsQ.isError) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold tracking-tight">我的课表</h1>
+        <Card>
+          <CardContent className="p-4 text-sm text-destructive">
+            课表加载失败，请刷新页面后重试。
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">我的课表</h1>
