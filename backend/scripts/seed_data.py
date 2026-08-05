@@ -13,24 +13,28 @@
 import argparse
 import asyncio
 from datetime import datetime, time, timedelta, timezone
+from decimal import Decimal
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal
 from app.models import (  # noqa: F401  导入即注册模型
+    Assignment,
     Course,
     CoursePrerequisite,
     Enrollment,
+    Grade,
     PeriodDef,
     Section,
     Semester,
     Student,
+    Submission,
     Teacher,
     TimeSlot,
     User,
 )
-from app.models.constants import EnrollmentStatus, UserRole
+from app.models.constants import EnrollmentStatus, SubmissionStatus, UserRole
 
 # ---------- 生成参数 ----------
 TEACHER_TITLES = ["教授", "副教授", "副教授", "讲师"]  # 权重：副教授多
@@ -320,7 +324,9 @@ async def _seed_time_slots(session: AsyncSession, sections: list[Section]) -> No
     await session.flush()
 
 
-async def _seed_enrollments(session: AsyncSession, sections: list[Section]) -> None:
+async def _seed_enrollments(
+    session: AsyncSession, sections: list[Section]
+) -> tuple[list[Section], list[int]]:
     """给前若干演示学生选几门课，便于登录后直接看到课表内容。
 
     直接插入 Enrollment 行并同步 seats_taken（绕过运行时选课服务/Redis）。
@@ -360,6 +366,67 @@ async def _seed_enrollments(session: AsyncSession, sections: list[Section]) -> N
     for s in chosen:
         s.seats_taken = seats[s.id]
     await session.flush()
+    return chosen, demo_student_ids
+
+
+async def _seed_assignments(
+    session: AsyncSession, sections: list[Section], student_ids: list[int]
+) -> None:
+    """为演示教学班布置作业，并给演示学生生成提交与部分成绩，便于展示作业/批改流程。"""
+    now = datetime.now(timezone.utc)
+    assigns: list[Assignment] = []
+    for i, sec in enumerate(sections):
+        assigns.append(
+            Assignment(
+                section_id=sec.id,
+                title=f"第{i + 1}次作业",
+                description="请结合课程内容独立完成，论述需严谨、格式规范。",
+                due_at=now + timedelta(days=7 + i),
+                late_deadline=now + timedelta(days=10 + i) if i % 2 == 0 else None,
+                allow_late=(i % 2 == 0),
+            )
+        )
+    session.add_all(assigns)
+    await session.flush()
+    sec_to_assign = {sec.id: a for sec, a in zip(sections, assigns)}
+
+    # 每个演示学生对所在班的作业各提交一次（约留 1/4 不交，呈现"未提交"）
+    subs: list[Submission] = []
+    sub_teacher: list[int] = []  # 与 subs 对齐：该班教师 user_id，用作出分人
+    for i, uid in enumerate(student_ids):
+        for j in range(3):
+            if (i + j) % 4 == 0:
+                continue
+            sec = sections[(i + j) % len(sections)]
+            a = sec_to_assign[sec.id]
+            subs.append(
+                Submission(
+                    assignment_id=a.id,
+                    student_id=uid,
+                    file_key=None,
+                    text_comment=f"{a.title}已完成，附思路说明。",
+                    status=SubmissionStatus.SUBMITTED,
+                )
+            )
+            sub_teacher.append(sec.teacher_id)
+    session.add_all(subs)
+    await session.flush()
+
+    # 约一半给出成绩
+    grades: list[Grade] = []
+    for idx, sub in enumerate(subs):
+        if idx % 2 != 0:
+            continue
+        grades.append(
+            Grade(
+                submission_id=sub.id,
+                score=Decimal(80) + Decimal((idx * 13) % 20),
+                feedback="整体完成较好，注意论述严谨性与格式规范。",
+                graded_by=sub_teacher[idx],
+            )
+        )
+    session.add_all(grades)
+    await session.flush()
 
 
 # ---------- 入口 ----------
@@ -383,7 +450,8 @@ async def main(reset: bool) -> None:
         await _seed_prerequisites(session, courses)
         sections = await _seed_sections(session, courses, teachers, semester)
         await _seed_time_slots(session, sections)
-        await _seed_enrollments(session, sections)
+        demo_sections, demo_students = await _seed_enrollments(session, sections)
+        await _seed_assignments(session, demo_sections, demo_students)
 
         await session.commit()
 
