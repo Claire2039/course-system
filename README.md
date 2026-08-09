@@ -72,6 +72,41 @@ MinIO 管理附件，教师发布作业、学生提交、在线批改闭环
 
 ---
 
+## 🖼️ 界面预览
+
+> 🟢 以下截图均来自 [在线演示](http://114.55.96.132)，真实运行界面，点击即可体验。
+
+<div align="center">
+
+**🎓 学生选课端** · 课程目录 / 我的课表 / 我的候补 / 我的作业，分类清晰一目了然
+
+<img src="docs/screenshots/student.png" width="92%" alt="学生选课界面"/>
+
+<br/><br/>
+
+<table>
+<tr>
+<td width="50%" align="center">
+
+**🔐 登录页**
+
+<img src="docs/screenshots/login.png" width="100%" alt="登录页"/>
+
+</td>
+<td width="50%" align="center">
+
+**⚙️ 管理后台 · 目录管理**
+
+<img src="docs/screenshots/admin.png" width="100%" alt="管理后台"/>
+
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
 ## 🏗️ 系统架构
 
 ```mermaid
